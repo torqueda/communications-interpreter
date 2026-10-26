@@ -10,3 +10,9 @@
 .venv/
 __pycache__/
 .pytest_cache/
+
+# Hackathon skill scaffolding (not part of the project)
+/.agents/
+/.claude/
+/agent/
+/skills-lock.json

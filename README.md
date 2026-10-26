@@ -11,7 +11,7 @@ Built for first-generation Hispanic immigrant adults who struggle with English a
 1. **Code numbers the sentences first.** PDFs and text are split into numbered sentences by plain code before any AI sees them.
 2. **Reader agent** (an AI call) translates each numbered sentence, marks the deadline / action / documents / contact sentences, writes a bilingual summary that *cites sentence numbers*, and makes a scam decision with reasons.
 3. **Verifier agent** (a second, separate AI call) checks the Reader's work against the original: is each point faithful, is the translation faithful, is the scam decision justified?
-4. **Plain code checks** (no AI): every cited sentence must exist, a deadline date must appear in the sentence it cites, a deadline in the past is flagged. Anything not confirmed is shown with *"Couldn't verify, check the original"* instead of being trusted or hidden.
+4. **Plain code checks** (no AI): every cited sentence must exist, a deadline date must appear in the sentence it cites, a deadline in the past is flagged. Anything not confirmed is shown with *"We could not verify this. Please check the original letter"* instead of being trusted or hidden.
 5. The page draws everything. Clicking a highlight flashes its twin in the other language; "Show in letter" jumps to the source sentences.
 
 Nothing is stored. The letter lives in memory for one request; only your language choice is kept in the browser.
