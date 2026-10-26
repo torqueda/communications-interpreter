@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Communications Interpreter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <span class="app-name" id="app-name">Communications Interpreter</span>
+    <div class="topbar-right" id="topbar-right"></div>
+  </header>
+
+  <main id="main">
+    <section id="intro" class="intro">
+      <h1 id="greeting"></h1>
+      <p id="explain"></p>
+    </section>
+
+    <section id="language-view" hidden>
+      <div class="lang-pick">
+        <h1>Elija su idioma · Choose your language</h1>
+        <div class="lang-buttons">
+          <button type="button" data-lang="es">Español</button>
+          <button type="button" data-lang="en">English</button>
+        </div>
+        <p>Puede cambiar el idioma en cualquier momento.<br>You can switch language at any time.</p>
+      </div>
+    </section>
+
+    <section id="upload-view">
+      <label class="dropzone" id="dropzone" tabindex="0">
+        <input type="file" id="file-input" accept=".pdf,.txt,.png,.jpg,.jpeg" hidden>
+        <svg class="dz-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5m0 0l-4 4m4-4l4 4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="dz-main" id="dz-main"></span>
+        <span class="dz-sub" id="dz-sub"></span>
+      </label>
+    </section>
+
+    <section id="processing-view" hidden></section>
+    <section id="message-view" hidden></section>
+    <section id="results-view" hidden></section>
+  </main>
+
+  <footer class="footer" id="footer"></footer>
+
+  <script src="/i18n.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

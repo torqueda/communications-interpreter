@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Communications Interpreter: App Map</title>
+<style>
+  :root { --bg:#f6f7f9; --surface:#fff; --ink:#17223b; --muted:#475268; --line:#d3d9e4; --primary:#1e3a8a; --code:#eef1f6; --ai:#fde8c8; --ai-line:#d9a441; --codeb:#dbe6fb; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12161f; --surface:#1a2030; --ink:#e8ecf4; --muted:#a3adc2; --line:#2e3750; --primary:#8fb0ff; --code:#222b40; --ai:#3a2f14; --ai-line:#b8892f; --codeb:#1f2d52; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; padding:32px 16px 64px; }
+  main { max-width: 860px; margin:0 auto; }
+  h1 { font-size:1.9rem; line-height:1.2; margin:0 0 8px; text-wrap:balance; }
+  h2 { font-size:1.3rem; margin:36px 0 10px; text-wrap:balance; }
+  p { max-width:68ch; margin:0 0 12px; text-wrap:pretty; }
+  .lede { color:var(--muted); }
+  code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.9em; background:var(--code); padding:1px 5px; border-radius:4px; }
+  pre { background:var(--code); padding:12px 14px; border-radius:6px; overflow-x:auto; font:.88rem/1.5 ui-monospace,Menlo,Consolas,monospace; margin:8px 0 14px; }
+  code { overflow-wrap:anywhere; }
+  pre code { background:none; padding:0; overflow-wrap:normal; }
+  .flow { display:flex; flex-wrap:wrap; gap:10px; align-items:stretch; margin:12px 0 6px; padding:0; list-style:none; counter-reset:s; }
+  .flow li { flex:1 1 150px; min-width:0; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:.95rem; position:relative; }
+  .flow li.ai { background:var(--ai); border-color:var(--ai-line); }
+  .flow li.ui { background:var(--codeb); }
+  .flow b { display:block; font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .flow code { word-break:break-word; }
+  .legend { font-size:.9rem; color:var(--muted); }
+  details { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:4px 14px; margin:10px 0; }
+  summary { cursor:pointer; padding:8px 0; font-weight:600; min-height:44px; display:flex; align-items:center; }
+  summary:focus-visible, a:focus-visible { outline:3px solid var(--primary); outline-offset:2px; }
+  table { width:100%; border-collapse:collapse; font-size:.95rem; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .tw { overflow-x:auto; }
+  .note { font-size:.92rem; color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Communications Interpreter: App Map</h1>
+  <p class="lede">A one-page guide to where things live, so you can find the right file for a future change. It works offline and is a snapshot of the code as finished for the hackathon.</p>
+
+  <h2>What the app is</h2>
+  <p>A small Python web server (FastAPI) and one web page. You upload an official English letter; you get a Spanish translation beside the original, matched highlights, a summary where every point links to its source sentence, and a scam warning when something looks wrong. Nothing is stored.</p>
+  <p>Four main pieces: the <strong>page</strong> (<code>static/</code>), the <strong>server</strong> (<code>app/main.py</code>), the <strong>pipeline</strong> that does the work (<code>app/pipeline.py</code> with the two AI agents in <code>app/agents/</code>), and the <strong>checks</strong> written as plain code (<code>app/checks.py</code>).</p>
+
+  <h2>One action, followed through</h2>
+  <p>You drop <code>medicaid_notice.pdf</code> on the page. This is what happens, in order.</p>
+  <ol class="flow">
+    <li class="ui"><b>1 · Page</b>You drop a file. <code>upload()</code> in <code>static/app.js</code> sends it to the server.</li>
+    <li><b>2 · Server</b><code>explain()</code> in <code>app/main.py</code> receives it and calls the pipeline.</li>
+    <li><b>3 · Code</b><code>ingest()</code> and <code>split_sentences()</code> read the text and number the sentences. No AI yet.</li>
+    <li class="ai"><b>4 · AI call 1</b><code>run_reader()</code> translates, highlights, summarizes, checks for scams, citing sentence numbers.</li>
+    <li class="ai"><b>5 · AI call 2</b><code>run_verifier()</code> is a separate reviewer that checks call 1 against the original.</li>
+    <li><b>6 · Code</b><code>build_result()</code> proves cited sentences exist, checks dates, applies the reviewer's verdicts.</li>
+    <li class="ui"><b>7 · Page</b><code>renderResults()</code> draws both letters, the summary, and any warnings.</li>
+  </ol>
+  <p class="legend">Blue: in the browser. Orange: an AI call. Plain: ordinary code.</p>
+
+  <h2>A 3-stop route through the code</h2>
+  <p class="note">This is a reference route, not something you have been walked through.</p>
+  <details open>
+    <summary>Stop 1 · The entry point: <code>app/main.py</code>, search <code>async def explain</code></summary>
+    <p>The upload arrives as <code>UploadFile</code>. The one important line hands the slow work to a worker thread with <code>run_in_threadpool</code>, so two AI calls (30 seconds or more) do not freeze the server. Errors raised anywhere below come back here through <code>pipeline_error_handler</code> and become a short JSON <code>{"code": ...}</code> reply.</p>
+  </details>
+  <details>
+    <summary>Stop 2 · The pipeline: <code>app/pipeline.py</code>, search <code>def run_pipeline</code></summary>
+    <p>It reads like the list above: ingest, number the sentences, <code>run_reader</code>, reject non-English or non-letters, <code>run_verifier</code>, then <code>build_result</code>. The agents' prompts are the long strings named <code>SYSTEM</code> in <code>app/agents/reader.py</code> and <code>app/agents/verifier.py</code>; the shapes they must return are the Pydantic models in <code>app/models.py</code> (<code>ReaderOutput</code>, <code>VerifierOutput</code>).</p>
+  </details>
+  <details>
+    <summary>Stop 3 · The trust step: <code>app/checks.py</code>, search <code>def build_result</code></summary>
+    <p>This is the project's core idea in code. <code>_clean_summary</code> drops cited sentence numbers that do not exist and marks the point <code>verified: false</code>. <code>date_appears_in</code> confirms the deadline date really appears in the cited sentence. <code>apply_verifier</code> merges the reviewer's verdicts. Anything not confirmed is shown on the page with a "could not verify" label (<code>unverified</code> in <code>static/i18n.js</code>), never silently trusted.</p>
+  </details>
+
+  <h2>To change this, start here</h2>
+  <div class="tw">
+  <table>
+    <tr><th>If you want to…</th><th>Start in</th></tr>
+    <tr><td>Change any text on the page (either language)</td><td><code>static/i18n.js</code>; keep the <code>es</code> and <code>en</code> keys identical (<code>tests/test_i18n.py</code> checks this)</td></tr>
+    <tr><td>Change colors, fonts, or layout</td><td><code>static/styles.css</code>, the variables at the top (<code>--hl-deadline</code>, <code>--scam-bg</code>, …)</td></tr>
+    <tr><td>Change how the AI translates, highlights, or judges scams</td><td><code>SYSTEM</code> in <code>app/agents/reader.py</code>, then re-run the evals</td></tr>
+    <tr><td>Use a different Gemini model or the local Ollama mode</td><td><code>.env</code> (<code>GEMINI_MODEL</code>, <code>PROVIDER</code>); see <code>.env.example</code></td></tr>
+    <tr><td>Add a trial scenario</td><td>a <code>.txt</code> in <code>test_letters/</code> plus an <code>.expected.json</code>, then <code>python scripts/make_letters.py</code> and <code>python evals/run_evals.py</code></td></tr>
+    <tr><td>Change how sentences are split</td><td><code>app/segment.py</code>, and add a case to <code>tests/test_segment.py</code></td></tr>
+  </table>
+  </div>
+
+  <h2>A practice to reuse: break the AI's output on purpose</h2>
+  <p><strong>What happened here.</strong> The goal was a verifier you can trust, but a verifier that says "ok" proves nothing until you have seen it say "not ok". <code>evals/planted_errors.py</code> runs the real Reader, secretly changes a deadline date, a phone number, and one translated sentence, then checks that the real Verifier and code checks flag all three. They did (3 of 3). Separately, <code>tests/test_checks.py</code> and <code>tests/test_verifier.py</code> feed the checks bad sentence numbers and missing verdicts and confirm each becomes "could not verify".</p>
+  <p><strong>How to apply it elsewhere.</strong> Whenever one AI step is trusted to check another, write down the mistake you are afraid of, inject exactly that mistake, and run the check. If it passes the broken version, you have found out before a user did. Keep the injected cases as a script, so you can rerun them after every prompt change.</p>
+  <p class="note">One run per letter is a spot check, not proof: the AI is not deterministic, so run these a few times and add harder cases.</p>
+
+  <h2>Run it again</h2>
+  <pre><code>cd Build_With_AI_Basics
+source .venv/bin/activate
+uvicorn app.main:app --reload      # then open http://localhost:8000
+pytest                              # unit tests, no AI
+python evals/run_evals.py           # real AI over all trial letters</code></pre>
+  <p class="note">Snapshot note: this map describes the code at the end of the hackathon build (no git commit existed yet when it was written). File and function names can drift as the code changes.</p>
+</main>
+</body>
+</html>

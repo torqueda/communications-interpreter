@@ -1,0 +1,323 @@
+<title>Letter Explainer Scope</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column, a flow diagram, a mock of the side-by-side screen, then collapsible now / later / cut. */
+:root {
+  --paper: #f7f8fb;
+  --ink: #1b2233;
+  --muted: #5b6479;
+  --line: #d9dde8;
+  --surface: #ffffff;
+  --accent: #2f4fb3;
+  --hl-deadline: #f6d77a;
+  --hl-contact: #9fdcd0;
+  --hl-docs: #d6c4f5;
+  --hl-action: #f5b9a8;
+  --warn-bg: #fff1ec;
+  --warn-ink: #9a3412;
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12161f; --ink: #e6e9f2; --muted: #9aa3b8; --line: #2b3242; --surface: #1a1f2b;
+    --accent: #8ea6ff; --hl-deadline: #6b5a1c; --hl-contact: #1f5a50; --hl-docs: #4a3a72; --hl-action: #6e3626;
+    --warn-bg: #3a1e14; --warn-ink: #ffb59a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12161f; --ink: #e6e9f2; --muted: #9aa3b8; --line: #2b3242; --surface: #1a1f2b;
+  --accent: #8ea6ff; --hl-deadline: #6b5a1c; --hl-contact: #1f5a50; --hl-docs: #4a3a72; --hl-action: #6e3626;
+  --warn-bg: #3a1e14; --warn-ink: #ffb59a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 64px;
+}
+main { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.4rem; }
+h2 { font-size: 1.55rem; margin-bottom: 12px; }
+h3 { font-size: 1.1rem; font-family: var(--font-body); }
+p { margin: 0; max-width: 65ch; }
+.label { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: flex; flex-direction: column; gap: 12px; }
+.status { display: inline-flex; gap: 8px; align-items: center; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.pill { border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; background: var(--surface); }
+.lede { font-size: 1.15rem; color: var(--ink); }
+.kernel {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 24px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.kernel p.big { font-family: var(--font-display); font-size: 1.35rem; line-height: 1.4; }
+section { display: flex; flex-direction: column; gap: 12px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.two > div { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.diagram { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.diagram svg { display: block; min-width: 680px; width: 100%; height: auto; }
+.diagram text { font-family: var(--font-body); fill: var(--ink); }
+.diagram .sub { fill: var(--muted); font-size: 11px; }
+.node { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; }
+.node.agent { stroke: var(--accent); }
+.edge { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.edge.loop { stroke: var(--accent); stroke-dasharray: 5 4; }
+.arrowhead { fill: var(--muted); }
+.arrowhead.acc { fill: var(--accent); }
+
+/* Mock of the side-by-side screen */
+.mock { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.mock-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); gap: 12px; flex-wrap: wrap; }
+.toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; font-size: 0.8rem; }
+.toggle button { border: 0; background: transparent; color: var(--muted); padding: 4px 12px; font: inherit; cursor: pointer; }
+.toggle button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+.toggle button:focus-visible, summary:focus-visible, .key button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.letters { display: grid; grid-template-columns: 1fr 1fr; }
+.letter { padding: 18px 20px; min-width: 0; font-family: var(--font-display); font-size: 0.98rem; line-height: 1.7; }
+.letter + .letter { border-left: 1px solid var(--line); }
+.letter .label { display: block; margin-bottom: 8px; font-family: var(--font-mono); }
+mark { color: inherit; border-radius: 3px; padding: 0 2px; transition: outline-color .15s; outline: 2px solid transparent; }
+mark.deadline { background: var(--hl-deadline); }
+mark.contact { background: var(--hl-contact); }
+mark.docs { background: var(--hl-docs); }
+mark.action { background: var(--hl-action); }
+mark.on { outline-color: var(--ink); }
+.summary { border-top: 1px solid var(--line); padding: 16px 20px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+.summary div { display: flex; flex-direction: column; gap: 2px; }
+.summary .v { font-size: 0.95rem; }
+.key { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 20px 16px; }
+.key button { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 0.8rem; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.scam { margin: 0 20px 16px; background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; }
+.caption { font-size: 0.85rem; color: var(--muted); }
+
+/* Now / later / cut */
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+details + details { margin-top: 10px; }
+summary { cursor: pointer; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary h3 { margin: 0; }
+summary .count { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+details ul { margin: 0; padding: 0 18px 16px 38px; display: flex; flex-direction: column; gap: 6px; }
+details li { max-width: 65ch; }
+details li .why { color: var(--muted); }
+.tests { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.tests li { border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; font-size: 0.88rem; background: var(--surface); }
+blockquote { margin: 0; padding-left: 16px; border-left: 2px solid var(--line); color: var(--muted); font-style: italic; max-width: 65ch; }
+@media (max-width: 640px) {
+  h1 { font-size: 1.9rem; }
+  .two, .letters, .summary { grid-template-columns: 1fr; }
+  .letter + .letter { border-left: 0; border-top: 1px solid var(--line); }
+}
+@media (prefers-reduced-motion: reduce) { mark { transition: none; } }
+</style>
+
+<main>
+  <header>
+    <div class="status"><span class="pill">scope · approved</span><span>Build With AI: Basics</span></div>
+    <h1>Letter Explainer <span style="color: var(--muted); font-weight: 500; font-size: 0.6em;">(working title)</span></h1>
+    <p class="lede">Upload an official English letter and get it back in plain Spanish: a side-by-side translation with the important sentences color-matched across both languages, plus a short summary of what the letter is, what it asks, by when, and who to contact.</p>
+  </header>
+
+  <div class="kernel">
+    <span class="label">The unique kernel</span>
+    <p class="big">The family doesn't have to know how to prompt, what to ask, or how to check the answer. Every point is traced back to the exact sentence it came from.</p>
+    <p>A purpose-built workflow extracts the important information, color-codes each point in both the original and the translation, runs a verifier agent over the output, and flags letters that look like scams. It's a free tool, not a product: "if you need help with this specific scenario, here's a tool you or your family can use."</p>
+  </div>
+
+  <section>
+    <h2>How it flows</h2>
+    <div class="diagram" role="img" aria-label="Flow: a family member uploads a PDF or image; a translator agent extracts and translates; a verifier agent checks it and sends problems back; one screen shows the side-by-side letters, summary, and scam flag. Made-up test letters enter at the upload step to exercise the whole pipeline.">
+      <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker>
+          <marker id="ahA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead acc"/></marker>
+        </defs>
+        <rect class="node" x="10" y="60" width="130" height="70" rx="8"/>
+        <text x="75" y="90" text-anchor="middle" font-size="14" font-weight="600">Family member</text>
+        <text x="75" y="110" text-anchor="middle" class="sub">adult or bilingual helper</text>
+
+        <rect class="node" x="170" y="60" width="120" height="70" rx="8"/>
+        <text x="230" y="90" text-anchor="middle" font-size="14" font-weight="600">Upload</text>
+        <text x="230" y="110" text-anchor="middle" class="sub">one PDF or image</text>
+
+        <rect class="node agent" x="320" y="60" width="130" height="70" rx="8"/>
+        <text x="385" y="90" text-anchor="middle" font-size="14" font-weight="600">Translator agent</text>
+        <text x="385" y="110" text-anchor="middle" class="sub">extract · translate · link</text>
+
+        <rect class="node agent" x="480" y="60" width="120" height="70" rx="8"/>
+        <text x="540" y="90" text-anchor="middle" font-size="14" font-weight="600">Verifier agent</text>
+        <text x="540" y="110" text-anchor="middle" class="sub">check · scam flag</text>
+
+        <rect class="node" x="630" y="40" width="120" height="110" rx="8"/>
+        <text x="690" y="70" text-anchor="middle" font-size="14" font-weight="600">One screen</text>
+        <text x="690" y="92" text-anchor="middle" class="sub">side-by-side letters</text>
+        <text x="690" y="108" text-anchor="middle" class="sub">summary</text>
+        <text x="690" y="124" text-anchor="middle" class="sub">scam warning</text>
+
+        <path class="edge" d="M140,95 L168,95" marker-end="url(#ah)"/>
+        <path class="edge" d="M290,95 L318,95" marker-end="url(#ah)"/>
+        <path class="edge" d="M450,95 L478,95" marker-end="url(#ah)"/>
+        <path class="edge" d="M600,95 L628,95" marker-end="url(#ah)"/>
+        <path class="edge loop" d="M540,60 C540,20 385,20 385,58" marker-end="url(#ahA)"/>
+        <text x="462" y="28" text-anchor="middle" class="sub">sends problems back</text>
+
+        <rect class="node" x="90" y="185" width="280" height="50" rx="8" style="stroke-dasharray: 4 3"/>
+        <text x="230" y="208" text-anchor="middle" font-size="13" font-weight="600">Made-up test letters</text>
+        <text x="230" y="225" text-anchor="middle" class="sub">normal · informational · past deadline · phishing · French …</text>
+        <path class="edge" d="M230,185 L230,132" marker-end="url(#ah)" style="stroke-dasharray: 3 3"/>
+        <text x="238" y="162" class="sub">uploaded during testing</text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>What "working" looks like</h2>
+    <p>A made-up, confusing, Medicaid-style notice goes in. Within a minute, the screen shows the color-matched side-by-side and a short summary. The memorable moment comes when a deadline highlighted in the Spanish text matches the same color in the English original, so anyone can check it. Hover or tap a color below.</p>
+    <div class="mock" id="mock">
+      <div class="mock-bar">
+        <span class="label">Example · fabricated letter</span>
+        <div class="toggle" role="group" aria-label="Interface language">
+          <button id="ui-es" type="button" aria-pressed="true">Español</button>
+          <button id="ui-en" type="button" aria-pressed="false">English</button>
+        </div>
+      </div>
+      <div class="letters">
+        <div class="letter">
+          <span class="label">Original</span>
+          Dear Member, your eligibility review is due. <mark class="action" data-k="action">You must return the enclosed renewal form</mark> along with <mark class="docs" data-k="docs">proof of household income for the last 30 days</mark>. <mark class="deadline" data-k="deadline">If we do not receive it by November 30, 2026, your coverage will end.</mark> <mark class="contact" data-k="contact">Questions? Call 1-800-555-0142, Monday–Friday, 8am–5pm.</mark>
+        </div>
+        <div class="letter">
+          <span class="label">Español</span>
+          Estimado miembro: le toca la revisión de elegibilidad. <mark class="action" data-k="action">Debe devolver el formulario de renovación adjunto</mark> junto con <mark class="docs" data-k="docs">comprobantes de ingresos del hogar de los últimos 30 días</mark>. <mark class="deadline" data-k="deadline">Si no lo recibimos antes del 30 de noviembre de 2026, su cobertura terminará.</mark> <mark class="contact" data-k="contact">¿Preguntas? Llame al 1-800-555-0142, de lunes a viernes, de 8 a. m. a 5 p. m.</mark>
+        </div>
+      </div>
+      <div class="summary" id="summary"></div>
+      <div class="key" id="key"></div>
+      <p class="scam" id="scam"></p>
+    </div>
+    <p class="caption">Illustration only. The real layout gets decided in the PRD. All letters in the demo are fabricated.</p>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>Who it's for</h2>
+      <p>First-generation Hispanic immigrant adults who struggle with English, and the bilingual family members who help them. Example: a parent gets a Medicaid notice in their online portal and needs to know whether it's urgent and what to do. Today they guess, wait for a relative, or paste it into a chatbot without knowing whether to trust the answer.</p>
+    </div>
+    <div>
+      <h2>The core loop</h2>
+      <p>Open the app, then drop in or browse for a letter. A friendly animation plays while it works. On the same screen they get the side-by-side, the summary, and a warning if it looks like a scam. They come back whenever another letter arrives.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Trial letters</h2>
+    <p>This time the plan is to "run more trial cases, contemplating more potential scenarios for right and wrong outcomes."</p>
+    <ul class="tests">
+      <li>Normal, needs follow-up</li>
+      <li>Informational only</li>
+      <li>Past deadline</li>
+      <li>Missing contact info</li>
+      <li>Not in English (French)</li>
+      <li>Obvious phishing or scam</li>
+      <li>More found during planning</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>What's in, what waits, what's cut</h2>
+    <div>
+      <details open>
+        <summary><h3>Now: the proof of concept</h3><span class="count">9 items</span></summary>
+        <ul>
+          <li>Single-file upload: one PDF or one image</li>
+          <li>Side-by-side original and Spanish translation, key sentences color-matched (no line-by-line alignment needed)</li>
+          <li>Structured summary: what it is, what it asks, deadline, required documents, who to contact</li>
+          <li>Verifier agent that checks the translation and extraction</li>
+          <li>Scam/phishing flag</li>
+          <li>English/Spanish interface toggle</li>
+          <li>Disclosures section with a "not legal advice" note</li>
+          <li>A set of made-up test letters covering the scenarios above</li>
+          <li>Fabricated demo letters only; no real personal data</li>
+        </ul>
+      </details>
+      <details>
+        <summary><h3>Later</h3><span class="count">5 items</span></summary>
+        <ul>
+          <li>Multiple screenshots of one letter, including out-of-order parts <span class="why">(documented so it isn't forgotten)</span></li>
+          <li>History tabs for past documents and sessions <span class="why">(stores sensitive letters, so needs a privacy design)</span></li>
+          <li>Save the deadline to a calendar</li>
+          <li>Photos of physical paper letters <span class="why">(a README next step, not stubbed in code)</span></li>
+          <li>Hardening for real users before recommending it to anyone</li>
+        </ul>
+      </details>
+      <details>
+        <summary><h3>Explicitly cut</h3><span class="count">2 items</span></summary>
+        <ul>
+          <li>Code skeleton for physical-letter capture <span class="why">(costs build time, doesn't show in the demo)</span></li>
+          <li>Monetization <span class="why">(deliberately free; the goal is access)</span></li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <section>
+    <h2>Why it matters to you</h2>
+    <p>It brings together your translation work, your Benefits Navigator multi-agent project, and your research on LLM hallucinations. It's a portfolio piece for now:</p>
+    <blockquote>I don't want to give an incomplete app to people that need help.</blockquote>
+  </section>
+</main>
+
+<script>
+(function () {
+  var copy = {
+    es: {
+      summary: [["Qué es", "Aviso de renovación de Medicaid"], ["Qué le piden", "Devolver el formulario de renovación"], ["Fecha límite", "30 de noviembre de 2026"], ["Qué necesita", "Comprobantes de ingresos (últimos 30 días)"], ["A quién llamar", "1-800-555-0142, lun–vie, 8–5"]],
+      key: { deadline: "Fecha límite", action: "Qué hacer", docs: "Documentos", contact: "Contacto" },
+      scam: "Revisión de estafa: no se encontraron señales de alerta. (Una carta falsa mostraría la advertencia aquí.)"
+    },
+    en: {
+      summary: [["What it is", "Medicaid renewal notice"], ["What it asks", "Return the renewal form"], ["Deadline", "November 30, 2026"], ["What you need", "Proof of income (last 30 days)"], ["Who to call", "1-800-555-0142, Mon–Fri, 8–5"]],
+      key: { deadline: "Deadline", action: "What to do", docs: "Documents", contact: "Contact" },
+      scam: "Scam check: no warning signs found. (A fake letter would show the warning here.)"
+    }
+  };
+  var swatchVar = { deadline: "--hl-deadline", action: "--hl-action", docs: "--hl-docs", contact: "--hl-contact" };
+  var marks = document.querySelectorAll("#mock mark");
+  function highlight(k, on) {
+    marks.forEach(function (m) { m.classList.toggle("on", on && m.dataset.k === k); });
+  }
+  function render(lang) {
+    var c = copy[lang];
+    document.getElementById("summary").innerHTML = c.summary.map(function (r) {
+      return '<div><span class="label">' + r[0] + '</span><span class="v">' + r[1] + '</span></div>';
+    }).join("");
+    document.getElementById("key").innerHTML = Object.keys(c.key).map(function (k) {
+      return '<button type="button" data-k="' + k + '"><span class="swatch" style="background: var(' + swatchVar[k] + ')"></span>' + c.key[k] + '</button>';
+    }).join("");
+    document.getElementById("scam").textContent = c.scam;
+    document.getElementById("ui-es").setAttribute("aria-pressed", lang === "es");
+    document.getElementById("ui-en").setAttribute("aria-pressed", lang === "en");
+    document.querySelectorAll("#key button").forEach(function (b) {
+      b.addEventListener("mouseenter", function () { highlight(b.dataset.k, true); });
+      b.addEventListener("mouseleave", function () { highlight(b.dataset.k, false); });
+      b.addEventListener("focus", function () { highlight(b.dataset.k, true); });
+      b.addEventListener("blur", function () { highlight(b.dataset.k, false); });
+      b.addEventListener("click", function () { highlight(b.dataset.k, true); });
+    });
+  }
+  marks.forEach(function (m) {
+    m.addEventListener("mouseenter", function () { highlight(m.dataset.k, true); });
+    m.addEventListener("mouseleave", function () { highlight(m.dataset.k, false); });
+  });
+  document.getElementById("ui-es").addEventListener("click", function () { render("es"); });
+  document.getElementById("ui-en").addEventListener("click", function () { render("en"); });
+  render("es");
+})();
+</script>

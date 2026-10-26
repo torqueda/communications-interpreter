@@ -1,0 +1,250 @@
+<title>Letter Explainer Spec</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 780px column. Plain-language intro, a clickable architecture diagram that lights up per journey step, component reveals, then data, files, failures. Same "Clear paper" palette as the app. */
+:root {
+  --bg: #f3f5f8; --surface: #ffffff; --ink: #17223b; --muted: #475268; --line: #d3d9e4; --primary: #1e3a8a; --on-primary: #ffffff;
+  --ai: #e6ecfb; --code: #e7f5ee; --code-line: #8cc7a8; --ai-line: #8ea3e0;
+  --scam-bg: #fdecea; --scam-ink: #8f1d14; --caution-bg: #fff4d6; --caution-ink: #6b4a00;
+  --font: "Atkinson Hyperlegible", Verdana, sans-serif; --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151d; --surface: #191e29; --ink: #e5e9f2; --muted: #a2abbf; --line: #2c3343; --primary: #9fb3ff; --on-primary: #11151d;
+    --ai: #1f2944; --code: #17302a; --code-line: #3f8a68; --ai-line: #5670c0;
+    --scam-bg: #3b1a16; --scam-ink: #ffb4a8; --caution-bg: #3a2f10; --caution-ink: #ffd98a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151d; --surface: #191e29; --ink: #e5e9f2; --muted: #a2abbf; --line: #2c3343; --primary: #9fb3ff; --on-primary: #11151d;
+  --ai: #1f2944; --code: #17302a; --code-line: #3f8a68; --ai-line: #5670c0;
+  --scam-bg: #3b1a16; --scam-ink: #ffb4a8; --caution-bg: #3a2f10; --caution-ink: #ffd98a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 17px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 36px 64px; }
+main { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+h1, h2, h3 { margin: 0; line-height: 1.25; text-wrap: balance; }
+h1 { font-size: 2rem; } h2 { font-size: 1.4rem; } h3 { font-size: 1.05rem; }
+p { margin: 0; text-wrap: pretty; }
+code, .mono { font-family: var(--mono); font-size: 0.85em; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.pill { display: inline-block; font-family: var(--mono); font-size: 0.72rem; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; background: var(--surface); color: var(--muted); }
+.lede { font-size: 1.12rem; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; border: 1.5px solid; }
+.diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow-x: auto; }
+.diagram svg { display: block; width: 100%; min-width: 660px; height: auto; }
+.diagram text { font-family: var(--font); fill: var(--ink); font-size: 13px; }
+.diagram .sm { font-size: 10.5px; fill: var(--muted); font-family: var(--mono); }
+.nd { stroke-width: 1.5; transition: stroke-width .15s; }
+.nd.ui { fill: var(--bg); stroke: var(--line); }
+.nd.code { fill: var(--code); stroke: var(--code-line); }
+.nd.ai { fill: var(--ai); stroke: var(--ai-line); }
+.nd.on { stroke: var(--primary); stroke-width: 3.5; }
+.e { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.ah { fill: var(--muted); }
+.stepper { display: flex; flex-direction: column; gap: 10px; }
+.ctl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ctl button { font: inherit; font-weight: 700; min-height: 40px; padding: 6px 14px; border-radius: 8px; border: 1.5px solid var(--primary); background: transparent; color: var(--primary); cursor: pointer; }
+.ctl button:disabled { opacity: .4; cursor: default; }
+.ctl .count { margin-left: auto; font-family: var(--mono); font-size: .8rem; color: var(--muted); }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-height: 150px; }
+.refs { display: flex; flex-wrap: wrap; gap: 6px; }
+.refs span { font-family: var(--mono); font-size: .75rem; border-radius: 6px; padding: 2px 8px; background: var(--bg); border: 1px solid var(--line); }
+.refs span.prd { border-color: var(--primary); color: var(--primary); }
+button:focus-visible, summary:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+details + details { margin-top: 8px; }
+summary { cursor: pointer; list-style: none; padding: 13px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; margin-left: auto; font-size: 1.3rem; color: var(--muted); }
+details[open] summary::after { content: "–"; }
+.tag { font-family: var(--mono); font-size: .7rem; border-radius: 4px; padding: 1px 6px; }
+.tag.code { background: var(--code); } .tag.ai { background: var(--ai); } .tag.ui { background: var(--bg); border: 1px solid var(--line); }
+.d { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.d ul { margin: 0; padding-left: 20px; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: .8rem; line-height: 1.55; }
+.fail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.fail div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.fail b { font-size: .95rem; }
+.note { background: var(--caution-bg); color: var(--caution-ink); border-radius: 10px; padding: 12px 14px; }
+.decisions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.decisions > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.decisions ul { margin: 0; padding-left: 20px; }
+@media (max-width: 640px) { h1 { font-size: 1.6rem; } .fail, .decisions { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .nd { transition: none; } }
+</style>
+
+<main>
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <span class="pill">spec · approved</span>
+    <h1>Letter Explainer <span style="color:var(--muted);font-weight:400;font-size:.6em">(working title)</span></h1>
+    <p class="lede">A small Python web server on your laptop serves one web page. Code numbers the letter's sentences before any AI sees them. A Reader agent translates and marks them, a Verifier agent checks the work, and plain code proves every point traces back to a real sentence.</p>
+  </header>
+
+  <section>
+    <h2>How a letter moves through the system</h2>
+    <div class="legend">
+      <span><i style="background:var(--bg);border-color:var(--line)"></i>Browser</span>
+      <span><i style="background:var(--code);border-color:var(--code-line)"></i>Plain code (deterministic)</span>
+      <span><i style="background:var(--ai);border-color:var(--ai-line)"></i>AI call (Gemini or Ollama)</span>
+    </div>
+    <div class="diagram" role="img" aria-label="Browser page posts the file to the FastAPI server. Ingest extracts text, segment numbers the sentences, the Reader agent translates and marks them, the Verifier agent checks them, code checks verify sentence IDs and dates, and the result returns to the page.">
+      <svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" class="ah"/></marker></defs>
+        <rect class="nd ui" data-n="page" x="10" y="120" width="120" height="64" rx="8"/><text x="70" y="148" text-anchor="middle" font-weight="700">Page</text><text x="70" y="166" text-anchor="middle" class="sm">static/app.js</text>
+        <rect class="nd code" data-n="server" x="170" y="120" width="110" height="64" rx="8"/><text x="225" y="148" text-anchor="middle" font-weight="700">Server</text><text x="225" y="166" text-anchor="middle" class="sm">/api/explain</text>
+        <rect class="nd code" data-n="ingest" x="320" y="20" width="110" height="60" rx="8"/><text x="375" y="46" text-anchor="middle" font-weight="700">Ingest</text><text x="375" y="64" text-anchor="middle" class="sm">PDF/TXT text</text>
+        <rect class="nd code" data-n="segment" x="470" y="20" width="110" height="60" rx="8"/><text x="525" y="46" text-anchor="middle" font-weight="700">Segment</text><text x="525" y="64" text-anchor="middle" class="sm">numbered sentences</text>
+        <rect class="nd ai" data-n="reader" x="560" y="120" width="130" height="64" rx="8"/><text x="625" y="148" text-anchor="middle" font-weight="700">Reader agent</text><text x="625" y="166" text-anchor="middle" class="sm">translate · mark · scam</text>
+        <rect class="nd ai" data-n="verifier" x="470" y="220" width="110" height="64" rx="8"/><text x="525" y="248" text-anchor="middle" font-weight="700">Verifier</text><text x="525" y="266" text-anchor="middle" class="sm">ok · fixed · unverified</text>
+        <rect class="nd code" data-n="checks" x="320" y="220" width="110" height="64" rx="8"/><text x="375" y="248" text-anchor="middle" font-weight="700">Code checks</text><text x="375" y="266" text-anchor="middle" class="sm">IDs exist · dates</text>
+        <path class="e" d="M130,145H168" marker-end="url(#a)"/><text x="149" y="137" text-anchor="middle" class="sm">file</text>
+        <path class="e" d="M260,120L322,72" marker-end="url(#a)"/>
+        <path class="e" d="M430,50H468" marker-end="url(#a)"/>
+        <path class="e" d="M580,60C620,70 630,90 628,118" marker-end="url(#a)"/>
+        <path class="e" d="M600,184C595,210 590,230 582,240" marker-end="url(#a)"/>
+        <path class="e" d="M470,252H432" marker-end="url(#a)"/>
+        <path class="e" d="M320,252C250,252 230,220 228,186" marker-end="url(#a)"/>
+        <path class="e" d="M170,165H132" marker-end="url(#a)"/><text x="149" y="180" text-anchor="middle" class="sm">JSON</text>
+        <text x="640" y="104" text-anchor="middle" class="sm">image → Reader directly</text>
+      </svg>
+    </div>
+    <div class="stepper">
+      <div class="ctl"><button type="button" id="prev">Back</button><button type="button" id="next">Next step</button><span class="count" id="count"></span></div>
+      <div class="step" id="step" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Stack</h2>
+    <ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px">
+      <li><b>Python 3.11+ with FastAPI and Uvicorn</b>: the web server. New to you, and the subject of a separate walkthrough.</li>
+      <li><b>Pydantic</b>: data models that double as the JSON schema each AI must follow.</li>
+      <li><b>Gemini</b> by default (your $8.52 credit), or <b>Ollama</b> locally for free, text letters only.</li>
+      <li><b>PyMuPDF</b> for PDF text and generated test letters. <b>pytest</b> for tests.</li>
+      <li><b>Plain HTML, CSS, and JS</b> for the page, with no build step.</li>
+    </ul>
+    <p class="note">Not looked up yet: current Gemini model names and prices, the SDK's exact syntax, and which Ollama model handles Spanish well. These get verified at the start of the build.</p>
+  </section>
+
+  <section>
+    <h2>Components</h2>
+    <div>
+      <details><summary><span class="tag code">code</span><h3>Web server</h3><code>app/main.py</code></summary><div class="d">
+        <p><code>POST /api/explain</code> takes the file and returns <code>LetterResult</code> or an error code. <code>GET /api/config</code> tells the page which file types the current mode accepts. It also serves <code>static/</code>.</p>
+        <div class="refs"><span class="prd">prd › Uploading a Letter</span><span class="prd">prd › States and Boundaries</span></div></div></details>
+      <details><summary><span class="tag code">code</span><h3>Ingest and segment</h3><code>ingest.py · segment.py</code></summary><div class="d">
+        <p>PDF text comes from PyMuPDF and TXT is read directly. Images pass straight through to the Reader in Gemini mode only. Empty text returns <code>cannot_read</code>. A rule-based splitter numbers the sentences, with unit tests for "a.m.", "Dr.", and phone numbers.</p>
+        <div class="refs"><span class="prd">prd › Side-by-Side Letters</span><span class="prd">prd › States and Boundaries</span></div></div></details>
+      <details><summary><span class="tag code">code</span><h3>Providers</h3><code>app/providers/</code></summary><div class="d">
+        <p>One function, <code>generate_json(system, prompt, schema, image)</code>, with two implementations. Gemini supports images; Ollama is text only. <code>PROVIDER</code> in <code>.env</code> picks one. Each provider validates with Pydantic and retries once.</p></div></details>
+      <details><summary><span class="tag ai">AI</span><h3>Reader agent</h3><code>agents/reader.py</code></summary><div class="d">
+        <ul><li>Language check, and transcription for images</li><li>Spanish translation per sentence ID</li><li>A highlight kind per sentence</li><li>Bilingual summary items citing sentence IDs</li><li>Deadline date, needs-action flag, incomplete flag</li><li>Scam flag with reasons</li></ul>
+        <div class="refs"><span class="prd">prd › Side-by-Side Letters</span><span class="prd">prd › Summary with "Show in Letter"</span><span class="prd">prd › Scam Warning</span></div></div></details>
+      <details><summary><span class="tag ai">AI</span><h3>Verifier agent</h3><code>agents/verifier.py</code></summary><div class="d">
+        <p>A separate, skeptical call. Each item comes back <b>ok</b>, <b>fixed</b> (with a correction), or <b>unverified</b>, and it reviews the scam decision. If it disagrees, the warning still shows, with its note added as one more reason.</p>
+        <div class="refs"><span class="prd">prd › Letter Checking (Verifier)</span></div></div></details>
+      <details><summary><span class="tag code">code</span><h3>Code checks</h3><code>checks.py · pipeline.py</code></summary><div class="d">
+        <p>Cited IDs must exist. Fixes get applied. Anything failing gets <code>verified: false</code>, which shows as "Couldn't verify, check the original." <code>deadline_passed</code> comes from comparing dates. The warnings list: <code>past_deadline</code>, <code>incomplete</code>, <code>image_source</code>.</p>
+        <div class="refs"><span class="prd">prd › Letter Checking (Verifier)</span><span class="prd">prd › States and Boundaries</span></div></div></details>
+      <details><summary><span class="tag ui">page</span><h3>The one screen</h3><code>static/</code></summary><div class="d">
+        <p><code>i18n.js</code> holds every interface string in Spanish and English. <code>app.js</code> handles the language picker, upload, animation, scam gate, matched highlights, tooltips, "Show in letter," caution boxes, disclosures, and Start over and Close. Only the language choice is saved, in <code>localStorage</code>.</p>
+        <div class="refs"><span class="prd">prd › Interface Language</span><span class="prd">prd › Highlight Interactions</span><span class="prd">prd › Start Over and Close</span><span class="prd">prd › Disclosures</span></div></div></details>
+      <details><summary><span class="tag code">code</span><h3>Test letters and evals</h3><code>test_letters/ · evals/</code></summary><div class="d">
+        <p>Each fabricated letter comes with an <code>expected.json</code> of properties. <code>run_evals.py</code> runs the real pipeline and prints a pass/fail table, which is your "more trial cases" goal. An Ollama subset covers the text letters.</p>
+        <div class="refs"><span class="prd">prd › What We're Building</span></div></div></details>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where data lives</h2>
+    <div class="fail">
+      <div><b>The letter and its result</b><span>Server memory for one request, then the page's memory until Start over, Close, or closing the tab. Never saved.</span></div>
+      <div><b>The language choice</b><span>The browser's <code>localStorage</code>. It survives a reload and contains no letter data.</span></div>
+      <div><b>API key and provider</b><span><code>.env</code> on your machine. It's gitignored and never sent to the browser.</span></div>
+      <div><b>Test letters</b><span>The <code>test_letters/</code> folder, all fabricated and committed to the repo.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>File structure</h2>
+<pre>app/
+  main.py          FastAPI routes, static files, errors → HTTP status
+  pipeline.py      ingest → segment → reader → verifier → checks
+  ingest.py        file type, PDF/TXT text
+  segment.py       numbered sentences (deterministic)
+  checks.py        IDs exist, deadline_passed, warnings
+  models.py        Pydantic schemas + API response
+  config.py        .env settings
+  agents/          reader.py · verifier.py
+  providers/       __init__.py · gemini.py · ollama.py
+static/            index.html · styles.css · i18n.js · app.js
+test_letters/      fabricated .txt → .pdf/.png + expected.json
+scripts/           make_letters.py
+evals/             run_evals.py
+tests/             pytest, with a fake provider
+requirements.txt · .env.example · README.md · devpost/</pre>
+  </section>
+
+  <section>
+    <h2>Where it breaks, and what you see</h2>
+    <div class="fail">
+      <div><b>Malformed JSON from the model</b><span>One retry, then the "something went wrong" message with Try again.</span></div>
+      <div><b>A point cites a sentence that doesn't exist</b><span>Shown with "Couldn't verify, check the original," never silently trusted.</span></div>
+      <div><b>Slow model (10–30 s)</b><span>The animation keeps playing, with a timeout after about 90 s.</span></div>
+      <div><b>Scanned PDF with no text</b><span>Gemini reads it as an image and adds the image caution. Ollama returns "can't be read."</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Decisions</h2>
+    <div class="decisions">
+      <div><h3>Yours</h3><ul>
+        <li>FastAPI with plain JS, not React</li>
+        <li>Gemini by default, Ollama as a free text-only mode</li>
+        <li>Accept the screenshot risk, with a caution notice on image uploads</li>
+        <li>Local only, no deployment</li>
+        <li>You set up GitHub yourself, with guidance</li>
+      </ul></div>
+      <div><h3>Derived (for your review)</h3><ul>
+        <li>Code numbers sentences before any AI call</li>
+        <li>Two checking layers: the AI verifier for meaning, code for existence and dates</li>
+        <li><code>.txt</code> uploads accepted; images turned away in Ollama mode</li>
+        <li>Language choice kept in <code>localStorage</code></li>
+      </ul></div>
+    </div>
+    <p><b>FastAPI walkthrough:</b> a separate artifact built from your real code once the server exists. <b>Claude features to try during the build:</b> a hook that runs tests after edits, subagents that draft test letters in parallel, and <code>/code-review</code> before shipping.</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var steps = [
+    { n: ["page"], t: "Open and choose a language", d: "The browser loads static/index.html. With no saved language, it shows the Español/English picker, and the choice goes into localStorage.", r: ["prd › Interface Language", "static/app.js"] },
+    { n: ["page", "server"], t: "Upload", d: "app.js sends the file to POST /api/explain and starts the processing animation.", r: ["prd › Uploading a Letter", "prd › Processing Animation", "app/main.py"] },
+    { n: ["ingest"], t: "Ingest", d: "PDF and TXT go through text extraction. Images skip ahead to the Reader (Gemini mode only). Empty text becomes \"can't be read.\"", r: ["prd › States and Boundaries", "app/ingest.py"] },
+    { n: ["segment"], t: "Number the sentences", d: "Plain code splits the text into sentences 1, 2, 3, and so on. From here on, everything refers to those numbers, which is what lets code prove a point came from a real sentence.", r: ["prd › Side-by-Side Letters", "app/segment.py"] },
+    { n: ["reader"], t: "Reader agent", d: "It translates each numbered sentence, marks deadline, action, documents, contact, or red flag, writes the bilingual summary citing sentence numbers, and decides whether the letter looks like a scam.", r: ["prd › Summary with \"Show in Letter\"", "prd › Scam Warning", "app/agents/reader.py"] },
+    { n: ["verifier"], t: "Verifier agent", d: "A second, skeptical call checks every point and highlight against the original and marks each one ok, fixed, or unverified. It also reviews the scam decision.", r: ["prd › Letter Checking (Verifier)", "app/agents/verifier.py"] },
+    { n: ["checks"], t: "Code checks", d: "Every cited sentence number must exist. Anything that fails is labeled \"Couldn't verify.\" A past deadline is found by comparing dates, and the caution warnings are added.", r: ["prd › States and Boundaries", "app/checks.py"] },
+    { n: ["server", "page"], t: "Show the result", d: "One JSON result goes back. The page shows the scam gate if flagged, the caution boxes, the side-by-side letters, and the summary with \"Show in letter.\"", r: ["prd › Side-by-Side Letters", "prd › Scam Warning", "static/app.js"] },
+    { n: ["page"], t: "Explore, then start over or close", d: "Clicking a highlight flashes the same sentence number in the other column and shows a tooltip. Start over and Close clear memory, and the server kept nothing.", r: ["prd › Highlight Interactions", "prd › Start Over and Close"] }
+  ];
+  var i = 0, box = document.getElementById("step"), count = document.getElementById("count"), prev = document.getElementById("prev"), next = document.getElementById("next");
+  function show() {
+    var s = steps[i];
+    box.innerHTML = "<h3>" + s.t + "</h3><p>" + s.d + "</p><div class='refs'>" + s.r.map(function (r) { return "<span class='" + (r.indexOf("prd") === 0 ? "prd" : "") + "'>" + r + "</span>"; }).join("") + "</div>";
+    count.textContent = "Step " + (i + 1) + " of " + steps.length;
+    document.querySelectorAll(".nd").forEach(function (n) { n.classList.toggle("on", s.n.indexOf(n.dataset.n) !== -1); });
+    prev.disabled = i === 0; next.disabled = i === steps.length - 1;
+  }
+  prev.addEventListener("click", function () { if (i > 0) { i--; show(); } });
+  next.addEventListener("click", function () { if (i < steps.length - 1) { i++; show(); } });
+  show();
+})();
+</script>
